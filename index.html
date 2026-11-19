@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>1on1話題ツール</title>
+    <style>
+      :root{
+        --bg:#f4f1ea;
+        --surface:#fffdf9;
+        --surface-2:#ece7da;
+        --ink:#1c2b2a;
+        --muted:#5d6d6a;
+        --line:#ddd5c3;
+        --accent:#0e6b5e;
+        --accent-strong:#0a4f45;
+        --accent-soft:#dcebe6;
+        --warn-bg:#fdf3e0;
+        --warn-line:#e3c98a;
+        --warn-ink:#5c4a1a;
+        --chip-bg:#fffdf9;
+        --bar-track:#e7e1d2;
+        --shadow:0 1px 3px rgba(28,43,42,.08),0 8px 24px rgba(28,43,42,.06);
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#141a19;
+          --surface:#1e2624;
+          --surface-2:#27312f;
+          --ink:#e9efec;
+          --muted:#a3b3ae;
+          --line:#37443f;
+          --accent:#3ec9b2;
+          --accent-strong:#7fe0cd;
+          --accent-soft:#233d38;
+          --warn-bg:#2e2a1c;
+          --warn-line:#6b5c2e;
+          --warn-ink:#e8d9a3;
+          --chip-bg:#1e2624;
+          --bar-track:#2c3835;
+          --shadow:0 1px 3px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.25);
+        }
+      }
+      *{box-sizing:border-box}
+      html{-webkit-text-size-adjust:100%}
+      body{
+        margin:0;background:var(--bg);color:var(--ink);
+        font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,system-ui,-apple-system,"Segoe UI",sans-serif;
+        line-height:1.65;font-size:16px;
+      }
+      .wrap{max-width:920px;margin:0 auto;padding:20px 16px 56px}
+      .lead{font-size:15px;color:var(--muted);margin:2px 0 18px;max-width:42em}
+      .lead strong{color:var(--ink)}
+      h1{font-size:24px;line-height:1.35;margin:0 0 6px;letter-spacing:.01em}
+      h2{font-size:17px;margin:0 0 10px}
+      h3{font-size:14px;margin:0 0 6px}
+
+      .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+      fieldset{border:0;margin:0 0 16px;padding:0}
+      fieldset:last-child{margin-bottom:0}
+      legend{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;padding:0}
+      .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .chip{
+        appearance:none;border:1.5px solid var(--line);background:var(--chip-bg);color:var(--ink);
+        border-radius:999px;padding:10px 16px;min-height:44px;font-size:15px;font-weight:600;cursor:pointer;
+        font-family:inherit;line-height:1.2;
+      }
+      .chip:hover{border-color:var(--accent)}
+      .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+      @media (prefers-color-scheme: dark){ .chip[aria-pressed="true"]{color:#0c2420} }
+      .chip:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+      /* bias + theme unified */
+      .bias-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+      .bias-note{font-size:13px;color:var(--muted);margin:0}
+      .storage-note{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.6;margin-top:12px}
+      .storage-note strong{color:var(--ink)}
+      .storage-note code{font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+      .theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+      @media (max-width:560px){.theme-grid{grid-template-columns:repeat(2,1fr)}}
+      .theme-card{
+        appearance:none;text-align:left;background:var(--chip-bg);border:1.5px solid var(--line);border-radius:12px;
+        padding:12px 12px 10px;cursor:pointer;font-family:inherit;color:var(--ink);min-height:84px;display:flex;flex-direction:column;gap:6px;
+      }
+      .theme-card:hover{border-color:var(--accent)}
+      .theme-card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+      .theme-card[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+      .theme-card .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+      .theme-card .name{font-weight:800;font-size:14.5px;line-height:1.3}
+      .theme-card .count{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;font-weight:700}
+      .theme-card .badges{display:flex;flex-wrap:wrap;gap:4px;min-height:20px}
+      .badge{font-size:11px;font-weight:800;line-height:1;padding:4px 6px;border-radius:999px;white-space:nowrap}
+      .badge.rec{background:var(--accent);color:#fff}
+      @media (prefers-color-scheme: dark){.badge.rec{color:#0c2420}}
+      .badge.least{background:var(--surface);border:1px solid var(--accent);color:var(--accent-strong)}
+      .badge.sel{background:var(--ink);color:var(--surface)}
+      .track{display:block;width:100%;height:8px;background:var(--bar-track);border-radius:99px;overflow:hidden}
+      .fill{display:block;height:100%;background:var(--accent);border-radius:99px;min-width:0;transition:width .3s}
+      .data-box{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}
+      .data-box h3{font-size:13px;color:var(--muted);margin-bottom:6px}
+      .data-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+      .btn.small{padding:10px 14px;min-height:44px;font-size:14px;border-radius:10px}
+      .btn.small.ghost{background:transparent}
+      .file-label{display:inline-flex;align-items:center;justify-content:center}
+      .data-msg{font-size:13px;margin-top:8px;min-height:1.5em}
+      .data-msg.ok{color:var(--accent);font-weight:700}
+      .data-msg.err{color:#b42318;font-weight:700}
+      @media (prefers-color-scheme: dark){.data-msg.err{color:#fda29b}}
+      .text-btn{appearance:none;background:none;border:0;color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;padding:10px 6px;min-height:44px;font-family:inherit;text-decoration:underline;text-underline-offset:3px}
+
+      /* backup (export in sheet) + json view */
+      .backup-box{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}
+      .backup-box h3{font-size:13px;color:var(--muted);margin-bottom:6px}
+      .backup-hint{font-size:13.5px;color:var(--accent-strong);font-weight:700;margin:8px 0 0}
+      .json-view{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px}
+      a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+      [hidden]{display:none !important}
+
+      /* sheet */
+      .sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+      .cat-badge{display:inline-block;background:var(--accent-soft);color:var(--accent-strong);font-weight:800;font-size:13px;border-radius:8px;padding:5px 10px}
+      .reason{font-size:13px;color:var(--muted);margin:6px 0 0}
+      .theme{font-size:20px;font-weight:800;line-height:1.45;margin:10px 0 4px}
+      .goal{font-size:14px;color:var(--muted);margin:0}
+      .timebox{text-align:right;flex-shrink:0}
+      .timebox .mins{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+      .timebox .lbl{font-size:12px;color:var(--muted)}
+
+      .step{border-top:1px solid var(--line);padding:14px 0 2px;margin-top:12px}
+      .step-head{display:flex;gap:10px;align-items:baseline}
+      .step-no{font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.08em;white-space:nowrap}
+      .step h3{font-size:15px}
+      .say{
+        background:var(--surface-2);border-radius:10px;padding:12px 14px;font-size:16px;font-weight:600;margin:8px 0 6px;
+      }
+      .qs{margin:8px 0 6px;padding:0;list-style:none;counter-reset:q}
+      .qs li{padding:10px 14px;background:var(--surface-2);border-radius:10px;margin-bottom:8px;font-size:15px}
+      .qs li::before{counter-increment:q;content:"Q" counter(q) "　";font-weight:800;color:var(--accent);font-size:13px}
+      .rephrase{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0 6px}
+      @media (min-width:640px){.rephrase{grid-template-columns:1fr 1fr}}
+      .rp{border-radius:10px;padding:12px 14px;font-size:14.5px}
+      .rp.bad{border:1.5px dashed var(--line);color:var(--muted)}
+      .rp.good{background:var(--accent-soft)}
+      .rp .tag{font-size:12px;font-weight:800;display:block;margin-bottom:4px}
+      .rp.bad .tag{color:var(--muted)}
+      .rp.good .tag{color:var(--accent-strong)}
+      .caution{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);border-radius:10px;padding:12px 14px;font-size:13.5px;margin-top:14px}
+      .caution strong{display:block;margin-bottom:2px}
+
+      .sheet-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+      .btn{
+        appearance:none;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;font-size:15px;
+        padding:12px 20px;min-height:48px;cursor:pointer;font-family:inherit;
+      }
+      @media (prefers-color-scheme: dark){.btn{color:#0c2420}}
+      .btn:hover{background:var(--accent-strong)}
+      @media (prefers-color-scheme: dark){.btn:hover{color:#0c2420}}
+      .btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+      .saved-note{font-size:12.5px;color:var(--muted)}
+      .toast{font-size:14px;font-weight:700;color:var(--accent);min-height:1.6em;margin-top:8px}
+
+      /* sticky guide timer */
+      .sticky-timer{position:sticky;top:8px;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;margin-bottom:16px}
+      .st-row{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+      .st-title{font-size:13px;font-weight:800;color:var(--muted)}
+      .timer-phase{font-size:12.5px;font-weight:800;color:var(--accent-strong);background:var(--accent-soft);border-radius:999px;padding:4px 10px;white-space:nowrap}
+      .st-times{display:flex;gap:14px;font-variant-numeric:tabular-nums}
+      .st-time{font-size:13px;white-space:nowrap}
+      .st-time .t-label{font-size:11px;color:var(--muted);margin-right:4px}
+      .st-time strong{font-size:15px}
+      .st-controls{margin-left:auto;display:flex;gap:8px}
+      .timer-msg{font-size:12.5px;font-weight:700;color:var(--accent-strong);margin:6px 0 0}
+      .timer-msg.warn{color:#b45309}
+      @media (prefers-color-scheme: dark){.timer-msg.warn{color:#fbbf24}}
+      .timer-note{font-size:12.5px;color:var(--muted);margin:10px 0 4px;line-height:1.6}
+
+      /* vertical timeline (STEP1 -> STEP2 -> STEP3) */
+      .tl{display:flex;flex-direction:column;min-height:480px;margin-top:8px}
+      .tl-step{display:flex;gap:12px}
+      .tl-rail{position:relative;width:26px;flex-shrink:0;display:flex;justify-content:center}
+      .tl-track{position:absolute;top:6px;bottom:0;width:8px;border-radius:99px;background:var(--bar-track);overflow:hidden}
+      .tl-fill{display:block;width:100%;height:0%;background:var(--accent);border-radius:99px;transition:height .3s}
+      .tl-step.over .tl-fill{background:#c2410c}
+      .tl-dot{position:relative;z-index:1;width:26px;height:26px;border-radius:50%;background:var(--surface);border:2px solid var(--line);color:var(--muted);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+      .tl-step.current .tl-dot{background:var(--accent);border-color:var(--accent);color:#fff}
+      @media (prefers-color-scheme: dark){.tl-step.current .tl-dot{color:#0c2420}}
+      .tl-step.done .tl-dot{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong)}
+      .tl-body{flex:1;min-width:0;padding:2px 10px 20px;border-radius:12px}
+      .tl-step.current .tl-body{background:var(--accent-soft)}
+      .tl-step.done .tl-body{opacity:.82}
+      .tl-step.current .tl-body{opacity:1}
+      .tl-min{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+      .tl-state{font-size:12px;font-weight:800;color:var(--accent-strong);white-space:nowrap}
+      .tl-state:empty{display:none}
+      .tl-sub{font-size:13px;color:var(--muted);margin:12px 0 0}
+
+      footer{font-size:12.5px;color:var(--muted);margin-top:8px}
+      footer p{margin:4px 0}
+    </style>
+  
+    <meta name="description" content="1on1で何を話せばいいか困ったときの進め方シート。立場・場面・時間をチップで選ぶだけ。登録なし、名前も会話内容も入力しません。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="1on1話題ツール" />
+    <meta property="og:title" content="1on1話題ツール" />
+    <meta property="og:description" content="1on1で何を話せばいいか困ったときの進め方シート。立場・場面・時間をチップで選ぶだけ。登録なし、名前も会話内容も入力しません。" />
+    <meta property="og:url" content="https://shibatamago-dev.github.io/1on1-topic/" />
+    <meta property="og:image" content="https://shibatamago-dev.github.io/1on1-topic/ogp.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script data-goatcounter="https://1on1-topic.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>1on1の進め方シート</h1>
+      <p class="lead">「何を話せばいいか分からない」をなくすための、個人用の準備ツールです。<strong>立場・場面・時間の3つを選ぶだけ</strong>で、最初の一言から締めまでが1枚にまとまります。名前や会話の内容は入力しません。</p>
+
+      <!-- ===== 選択 ===== -->
+      <section class="panel" aria-label="条件の選択">
+        <fieldset>
+          <legend>あなたの立場</legend>
+          <div class="chips" id="roleChips">
+            <button type="button" class="chip" data-role="manager" aria-pressed="true">上司として</button>
+            <button type="button" class="chip" data-role="member" aria-pressed="false">部下として</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>今日の場面</legend>
+          <div class="chips" id="sceneChips">
+            <button type="button" class="chip" data-scene="regular" aria-pressed="true">定期</button>
+            <button type="button" class="chip" data-scene="first" aria-pressed="false">初回</button>
+            <button type="button" class="chip" data-scene="eval" aria-pressed="false">評価前</button>
+            <button type="button" class="chip" data-scene="busy" aria-pressed="false">忙しそう・困ってそう</button>
+            <button type="button" class="chip" data-scene="career" aria-pressed="false">キャリアの話がしたい</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>使える時間</legend>
+          <div class="chips" id="timeChips">
+            <button type="button" class="chip" data-time="15" aria-pressed="true">15分</button>
+            <button type="button" class="chip" data-time="30" aria-pressed="false">30分</button>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- ===== テーマと偏り（統合） ===== -->
+      <section class="panel" aria-label="テーマと話題の偏り">
+        <div class="bias-head">
+          <h2>テーマを選ぶ ・ 話題の偏り</h2>
+          <button type="button" class="text-btn" id="resetBtn">記録をリセット</button>
+        </div>
+        <p class="bias-note">分類をタップすると、そのテーマの進め方シートに切り替わります。バーと回数はこれまでの偏りです。「毎回、業務報告で終わる」を防ぐ目安として、少なめの分類や場面のおすすめも同じ場所に表示しています。下のシートで話し終えたら「この分類で話した」で記録してください。</p>
+
+        <div class="storage-note" role="note">
+          <strong>保存の仕組み（Cookieではありません）</strong><br>
+          保存先はこの端末のブラウザ内（<code>localStorage</code>）で、サーバーには送信しません。中身は分類ごとの回数だけです（名前・日付・会話の内容は含みません）。端末やブラウザを変えると引き継がれないため、JSONの書き出し／読み込みで移せます（読み込みはすぐ下、書き出しは進め方シートの「話した」の下）。
+        </div>
+
+        <div class="theme-grid" id="themeGrid" aria-label="テーマ一覧"></div>
+
+        <div class="data-box" aria-label="データの読み込み">
+          <h3>データを読み込む（JSON）</h3>
+          <p class="bias-note">別の端末で書き出したJSONを読み込んで、今の回数と置き換えます。ファイルからでも、JSONの文字を貼り付けても読み込めます。読み込み時は形式をチェックし、問題があれば現在のデータはそのまま残します。書き出しは、下の進め方シートで「話した」を押したあとの場所にあります。</p>
+          <div class="data-actions">
+            <label class="btn small ghost file-label" for="importFile">JSONファイルを選ぶ</label>
+            <input type="file" id="importFile" accept="application/json,.json" hidden>
+          </div>
+          <textarea id="pasteText" class="json-view" rows="4" placeholder="ここに書き出したJSONを貼り付け" aria-label="読み込むJSONの貼り付け欄"></textarea>
+          <div class="data-actions">
+            <button type="button" class="btn small" id="pasteImportBtn">貼り付けたJSONを読み込む</button>
+          </div>
+          <p class="data-msg" id="dataMsg" role="status" aria-live="polite"></p>
+          <p class="bias-note">JSONの形式： <code style="font-size:12px">{"app":"1on1-bias","version":1,"counts":{"progress":2,"support":0,…}}</code></p>
+        </div>
+      </section>
+
+      <!-- ===== 目安タイマー（追従バー） ===== -->
+      <div class="sticky-timer" aria-label="目安タイマー">
+        <div class="st-row">
+          <span class="st-title">目安タイマー</span>
+          <span class="timer-phase" id="timerPhase">まだ始まっていません</span>
+          <span class="st-times">
+            <span class="st-time"><span class="t-label">経過</span><strong id="timerElapsed">0:00</strong></span>
+            <span class="st-time"><span class="t-label">残り（目安）</span><strong id="timerRemaining">約15分0秒</strong></span>
+          </span>
+          <span class="st-controls">
+            <button type="button" class="btn small" id="timerStartPauseBtn">スタート</button>
+            <button type="button" class="btn small ghost" id="timerResetBtn">リセット</button>
+          </span>
+        </div>
+        <p class="timer-msg" id="timerMsg" role="status" aria-live="polite" hidden></p>
+      </div>
+
+      <!-- ===== 進め方シート ===== -->
+      <section class="panel" aria-label="進め方シート" id="sheet">
+        <div class="sheet-head">
+          <div>
+            <span class="cat-badge" id="catBadge"></span>
+            <p class="reason" id="reason"></p>
+          </div>
+          <div class="timebox">
+            <div class="mins" id="totalMins"></div>
+            <div class="lbl">目安の配分</div>
+          </div>
+        </div>
+        <p class="timer-note">進み具合は左のレールで見ます。STEP1から順に、経過に合わせて上から下へ色が伸びていきます。厳密なタイマーではなく目安です。時間どおりに進まなくても問題ありません。時間を過ぎても自動で記録したり、終了を強制したりはしません。そのまま話し続けて大丈夫です。</p>
+
+        <!-- ===== 縦タイムライン ===== -->
+        <div class="tl" id="timeline">
+          <div class="tl-step" id="tlStep0">
+            <div class="tl-rail" aria-hidden="true"><span class="tl-track"><span class="tl-fill"></span></span><span class="tl-dot">1</span></div>
+            <div class="tl-body">
+              <div class="step-head"><span class="step-no">STEP 1</span><h3>最初の一言</h3><span class="tl-min" id="tlMin0"></span><span class="tl-state"></span></div>
+              <p class="say" id="opening"></p>
+            </div>
+          </div>
+
+          <div class="tl-step" id="tlStep1">
+            <div class="tl-rail" aria-hidden="true"><span class="tl-track"><span class="tl-fill"></span></span><span class="tl-dot">2</span></div>
+            <div class="tl-body">
+              <div class="step-head"><span class="step-no">STEP 2</span><h3>メイン</h3><span class="tl-min" id="tlMin1"></span><span class="tl-state"></span></div>
+              <p class="theme" id="theme"></p>
+              <p class="goal" id="goal"></p>
+              <ol class="qs">
+                <li id="q1"></li>
+                <li id="q2"></li>
+              </ol>
+              <h4 class="tl-sub">角の立つ聞き方の言い換え</h4>
+              <div class="rephrase">
+                <div class="rp bad"><span class="tag">✕ そのまま言うと角が立つ</span><span id="blunt"></span></div>
+                <div class="rp good"><span class="tag">○ こう言い換える</span><span id="soft"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tl-step" id="tlStep2">
+            <div class="tl-rail" aria-hidden="true"><span class="tl-track"><span class="tl-fill"></span></span><span class="tl-dot">3</span></div>
+            <div class="tl-body">
+              <div class="step-head"><span class="step-no">STEP 3</span><h3>締めの一言</h3><span class="tl-min" id="tlMin2"></span><span class="tl-state"></span></div>
+              <p class="say" id="closing"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="caution" id="caution" hidden><strong>この場面での注意</strong><span id="cautionText"></span></div>
+
+        <div class="sheet-actions">
+          <button type="button" class="btn" id="recordBtn">この分類で話した</button>
+          <span class="saved-note">回数だけをこの端末内に保存します（日付・内容は残しません）</span>
+        </div>
+        <p class="toast" id="toast" role="status" aria-live="polite"></p>
+
+        <div class="backup-box" id="backupBox" aria-label="記録の書き出し">
+          <h3>記録を書き出す（JSON）</h3>
+          <p class="bias-note">回数を別の端末へ移したり、バックアップしたりするときに使います。ボタンを押すたびに、いまの回数でJSONを作り直して下に表示します。</p>
+          <p class="backup-hint" id="backupHint" hidden>記録しました。この内容を残したい場合は、ここから書き出せます。</p>
+          <div class="data-actions">
+            <button type="button" class="btn small" id="exportBtn">JSONを書き出す（表示する）</button>
+            <a class="btn small ghost" id="downloadLink" href="#" hidden>ダウンロードを試す</a>
+          </div>
+          <div id="exportPanel" hidden>
+            <textarea id="jsonView" class="json-view" rows="8" readonly aria-label="書き出したJSON"></textarea>
+            <div class="data-actions">
+              <button type="button" class="btn small ghost" id="copyBtn">JSONをコピー</button>
+            </div>
+            <p class="bias-note">Androidのアプリ内ブラウザなど、ダウンロードが始まらずJSONが開いてしまう環境では、この表示からコピーしてメモなどに保存してください。読み込み側では、上の「貼り付けたJSONを読み込む」に貼れば復元できます。</p>
+          </div>
+          <p class="data-msg" id="exportMsg" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <footer>
+        <p>進め方は一般に公開されている1on1の進め方をもとにした個人用のメモです。特定の会社の制度を前提にしていません。</p>
+        <p>コンディションの話題は診断ではありません。つらさが続く場合は、人事・産業保健・相談窓口など、職場の案内先につなぐことを優先してください。</p>
+      </footer>
+    </div>
+
+    <script>
+    (function(){
+      "use strict";
+
+      var CATS = [
+        { id:"progress",  label:"進捗" },
+        { id:"support",   label:"困りごと支援" },
+        { id:"growth",    label:"成長・キャリア" },
+        { id:"team",      label:"チーム" },
+        { id:"condition", label:"コンディション" },
+        { id:"chat",      label:"雑談" }
+      ];
+      function catLabel(id){ for(var i=0;i<CATS.length;i++){ if(CATS[i].id===id) return CATS[i].label; } return id; }
+
+      /* ===== 12枚のカード（6分類 × 2立場） ===== */
+      var CARDS = {
+        manager: {
+          progress: {
+            theme:"進捗を「報告」で終わらせず、次の一手を決める",
+            goal:"進んでいる点と止まっている点を分け、止まりの正体（情報・判断・リソース）を特定する回です。",
+            opening:"今週の様子から聞かせて。進んでいることと止まっていることを分けて話そう。",
+            q1:"今いちばん進んでいるのはどこ？何が効いていると思う？",
+            q2:"止まっているところはどこ？詰まっているのは情報・判断・リソースのどれに近い？",
+            blunt:"なんでまだ終わってないの？",
+            soft:"終わらせるために、今いちばん引っかかっているのはどこ？",
+            closing:"じゃあ次回までに見るのは、この一手で合っている？困ったら途中で声をかけて。"
+          },
+          support: {
+            theme:"困りごとを早めに出してもらい、解き方を一緒に選ぶ",
+            goal:"抱え込みをほどく回です。本人が解く／壁打ちで解く／上司が間に入る、のどれが早いかを決めます。",
+            opening:"今日は進捗より、困っていることを先に聞きたい。",
+            q1:"最近、自分だけでは解きにくいと感じていることはある？",
+            q2:"それは私が間に入った方が早い？それとも壁打ち相手がいる方が進む？",
+            blunt:"もっと早く言ってよ。",
+            soft:"次に同じことが起きたら、どのタイミングで声をかけると助かる？",
+            closing:"今日出た困りごとは、私の方で確認して戻すね。抱えたままにしなくて大丈夫。"
+          },
+          growth: {
+            theme:"少し先の話をして、伸ばしたい方向を言葉にする",
+            goal:"評価の話とは切り分け、手応えのある仕事と次に試したいことを拾う回です。",
+            opening:"今日は少し先の話をしよう。今の仕事の先に、伸ばしたいことはある？",
+            q1:"最近やってみて、手応えがあった仕事はどれ？何が面白かった？",
+            q2:"半年後、できるようになっていたいことはある？そのために今の仕事で試せる小さな一歩は？",
+            blunt:"キャリアプランはあるの？",
+            soft:"まだざっくりで大丈夫。興味が向いている方向はある？",
+            closing:"今日の話は次に挑戦することを考える材料にしよう。具体化したらまた聞かせて。"
+          },
+          team: {
+            theme:"チームの進め方を、個人の評価と分けて聞く",
+            goal:"連携がうまくいった場面と、情報が止まりやすい場所を聞く回です。人ではなく進め方に焦点を当てます。",
+            opening:"チームの動き方についても聞かせて。やりやすい／やりにくい場面はある？",
+            q1:"最近、チームで連携がうまくいった場面はあった？何が良かったと思う？",
+            q2:"情報共有や進め方で、ここが変わると楽になる、という点はある？",
+            blunt:"誰が問題なの？",
+            soft:"進め方として、どこで情報が止まりやすいと感じる？",
+            closing:"チームの話は個人の評価とは分けて受け止めるね。教えてくれてありがとう。"
+          },
+          condition: {
+            theme:"調子と負担の感じ方を、無理のない範囲で聞く",
+            goal:"診断はしません。負担の感じ方と、調整できると助かる点を聞くまでに留める回です。",
+            opening:"仕事の話の前に、最近の調子はどう？無理のない範囲で聞かせて。",
+            q1:"最近、疲れが残りやすいとか集中しにくいと感じることはある？話せる範囲で大丈夫。",
+            q2:"仕事の量や進め方で、少し調整できると助かることはある？",
+            blunt:"顔色が悪いけど、大丈夫？何か病気じゃない？",
+            soft:"最近忙しそうに見えたので、負担の感じ方を聞かせて。詳しくは話さなくて大丈夫だよ。",
+            closing:"無理に結論は出さなくて大丈夫。必要なら人事や相談窓口につなぐこともできるから、遠慮なく言って。",
+            caution:"体調を断定したり、医療的な助言をしたりしないでください。聞くことと、必要に応じて人事・産業保健・相談窓口へつなぐ言い方までに留めます。つらそうな様子が続く場合は、1on1で抱えず窓口への相談を勧めてください。"
+          },
+          chat: {
+            theme:"仕事以外の話で、話しやすい空気をつくる",
+            goal:"信頼の土台づくりの回です。踏み込まず、相手が話せる範囲を尊重します。",
+            opening:"今日は最初、仕事以外の話から。最近、何か楽しみにしていることはある？",
+            q1:"最近ハマっていることや、休みの日にしていることはある？",
+            q2:"仕事以外で、最近ちょっと嬉しかったことは？",
+            blunt:"プライベートはどうなの？詳しく教えて。",
+            soft:"話せる範囲で大丈夫。最近リフレッシュできたことはある？",
+            closing:"ありがとう、少し人柄が見えた気がする。本題も無理なく入っていこう。"
+          }
+        },
+        member: {
+          progress: {
+            theme:"進捗と「判断してほしいこと」を分けて持ち込む",
+            goal:"報告だけで終わらせず、優先順位と進め方の確認を取る回です。案を持って行くのがコツです。",
+            opening:"今日は進捗と、判断してほしいことを分けて持ってきました。",
+            q1:"この進め方で進めてよいか、優先順位の確認をお願いできますか？",
+            q2:"判断に必要な情報は足りていますか？追加で調べた方がよい点はありますか？",
+            blunt:"これでいいですか？（案なしの丸投げ）",
+            soft:"案はAで考えています。理由はこの点です。この方向で進めてよいですか？",
+            closing:"確認ありがとうございます。次回までにここまで進めて報告します。"
+          },
+          support: {
+            theme:"困りごとを、抱え込む前に小さく相談する",
+            goal:"「できません」で止めず、難しい条件と代替案をセットで渡す回です。",
+            opening:"今日は困っていることを早めに相談したくて持ってきました。",
+            q1:"この詰まりは、私の進め方の工夫と関係者の調整、どちらで解くのが早いと思いますか？",
+            q2:"上長から間に入ってもらえると助かる場面はありますか？",
+            blunt:"できません。",
+            soft:"今の条件だとこの点が難しいです。条件を変えるか優先順位を下げるか、相談できますか？",
+            closing:"助言ありがとうございます。まず教わった方法を試して、結果を共有します。"
+          },
+          growth: {
+            theme:"やってみたいことと、必要な経験を相談する",
+            goal:"希望をざっくりでも言葉にして、今の仕事の中で試せる一歩に落とす回です。",
+            opening:"今日は今後のことを少し相談したくて、やってみたいことを持ってきました。",
+            q1:"今の仕事の中で、もう少し任せてもらえると伸びそうな部分はどこだと思いますか？",
+            q2:"半年後にできるようになりたいことに向けて、今から試せる小さな一歩はありますか？",
+            blunt:"もっと面白い仕事がしたいです。",
+            soft:"最近手応えがあったのはこの仕事でした。似た挑戦を次に試す機会はありますか？",
+            closing:"ありがとうございます。今日の話をもとに、まず小さな一歩から試してみます。"
+          },
+          team: {
+            theme:"チームの進め方で困っていることを、進め方の話として渡す",
+            goal:"人の批判ではなく、情報の流れや進め方の詰まりとして伝える回です。",
+            opening:"チームの進め方について、相談したいことが一つあります。",
+            q1:"情報共有のこのやり方で、認識のずれが起きやすいと感じています。進め方を変える相談はできますか？",
+            q2:"連携がうまくいったときのやり方を、他の場面にも広げられると思いますか？",
+            blunt:"あの人が共有してくれないんです。",
+            soft:"この場面で情報が届くのが遅れがちです。共有のタイミングを決める相談ができますか？",
+            closing:"聞いてくださりありがとうございます。まず自分から共有の出し方を変えてみます。"
+          },
+          condition: {
+            theme:"負担の感じ方を、調整の相談として伝える",
+            goal:"体調を詳しく説明する必要はありません。業務量や進め方の調整として相談する回です。",
+            opening:"今日は負担の感じ方について、少し相談させてください。",
+            q1:"最近、業務が重なって回復しきれていない感覚があります。量や締切の調整を相談できますか？",
+            q2:"しばらくの間、進め方で配慮してもらえると助かる点をお伝えしてもよいですか？",
+            blunt:"もう限界です。（結論だけ渡す）",
+            soft:"この2週間、締切が重なって余裕がない状態です。優先順位を一緒に見直してもらえますか？",
+            closing:"聞いてくださりありがとうございます。無理のない進め方で、経過も共有します。",
+            caution:"体調の詳細を話す必要はありません。つらさが続く・日常生活に支障がある場合は、1on1だけで抱えず、人事・産業保健・相談窓口や医療機関への相談も検討してください。このツールは診断をするものではありません。"
+          },
+          chat: {
+            theme:"雑談から入って、話しやすい関係をつくる",
+            goal:"仕事以外の話題で距離を縮める回です。相手の話せる範囲を尊重し、自分からも少し開示します。",
+            opening:"始まる前に少しだけ。最近、仕事以外で楽しみにしていることがあります。",
+            q1:"最近、何かハマっていることはありますか？自分はこんなことにハマっていて…。",
+            q2:"休みの日はどう過ごすことが多いですか？話せる範囲で大丈夫です。",
+            blunt:"何か面白い話をしてください。",
+            soft:"自分は最近こんなことがありました。上長は最近リフレッシュできたことはありますか？",
+            closing:"ありがとうございます。少し話しやすくなった気がします。本題に入ります。"
+          }
+        }
+      };
+
+      /* ===== 場面：優先テーマと最初の一言の差し替え ===== */
+      var SCENES = {
+        regular: { primary:null, secondary:null, reason:"場面「定期」：一番触れていない分類から提案しています。" },
+        first:   { primary:"chat", secondary:"team", reason:"場面「初回」：まず話しやすい空気づくりを優先しました。" },
+        eval:    { primary:"progress", secondary:"growth", reason:"場面「評価前」：事実の振り返りと今後の話を優先しました。",
+                   caution:"評価を約束したり匂わせたりする言い方は避けてください。「頑張れば評価する」ではなく、事実（できたこと・途中のこと）と今後の行動に分けて話すのが安全です。" },
+        busy:    { primary:"condition", secondary:"support", reason:"場面「忙しそう・困ってそう」：詰めずに聞くことを優先しました。" },
+        career:  { primary:"growth", secondary:"progress", reason:"場面「キャリアの話がしたい」：成長・キャリアを中心に据えました。" }
+      };
+      var OPENING_OVERRIDE = {
+        first: {
+          manager:"初回なので、進め方自体を一緒に決めたい。今日は話しやすいテーマから始めよう。",
+          member:"初回なので、進め方を確認させてください。今日は話しやすいテーマから始めます。"
+        },
+        eval: {
+          manager:"評価の時期が近いけど、今日は事実と今後の話を分けよう。ここは評価を約束する場ではないので、先に伝えておくね。",
+          member:"評価前なので、事実ベースで振り返りを持ってきました。受け止め方も教えてください。"
+        },
+        busy: {
+          manager:"忙しそうに見えたので、今日は詰めずに聞く時間にしたい。短くても大丈夫だよ。",
+          member:"お忙しそうな中ありがとうございます。短く要点だけ相談させてください。"
+        },
+        career: {
+          manager:"今日はキャリアの話を中心に聞きたい。今の希望を、ざっくりでいいので教えて。",
+          member:"今日はキャリアについて相談したくて、希望を持ってきました。ざっくりで恐縮ですが聞いてください。"
+        }
+      };
+
+      var TIMES = {
+        "15": { total:15, parts:[["最初の一言",1],["メイン",12],["締め",2]], note:"テーマは1つに絞る配分です。" },
+        "30": { total:30, parts:[["最初の一言",2],["メイン＋確認",25],["締め",3]], note:"メインの中で、決まったことの確認まで含める配分です。" }
+      };
+
+      /* ===== 状態と偏り記録 ===== */
+      var LS_KEY = "1on1-bias-v1";
+      var state = { role:"manager", scene:"regular", time:"15", manualCat:null };
+      var counts = {};
+      CATS.forEach(function(c){ counts[c.id]=0; });
+      try {
+        var raw = localStorage.getItem(LS_KEY);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          CATS.forEach(function(c){ if (typeof parsed[c.id]==="number" && parsed[c.id]>=0) counts[c.id]=parsed[c.id]; });
+        }
+      } catch(e) { /* 保存できない環境ではメモリ内だけで動かす */ }
+      function saveCounts(){
+        try { localStorage.setItem(LS_KEY, JSON.stringify(counts)); } catch(e) {}
+      }
+      function leastCats(){
+        var min = Math.min.apply(null, CATS.map(function(c){return counts[c.id];}));
+        return CATS.filter(function(c){return counts[c.id]===min;}).map(function(c){return c.id;});
+      }
+      function recommended(){
+        if (state.scene==="regular") {
+          var least = leastCats();
+          var primary = least[0];
+          var others = CATS.map(function(c){return c.id;}).filter(function(id){return id!==primary;});
+          others.sort(function(a,b){ return counts[a]-counts[b]; });
+          return { primary:primary, secondary:others[0] };
+        }
+        var s = SCENES[state.scene];
+        return { primary:s.primary, secondary:s.secondary };
+      }
+      function currentCat(){
+        return state.manualCat || recommended().primary;
+      }
+
+      /* ===== 描画 ===== */
+      var $ = function(id){ return document.getElementById(id); };
+
+      function renderTheme(){
+        var max = Math.max(1, Math.max.apply(null, CATS.map(function(c){return counts[c.id];})));
+        var least = leastCats();
+        var rec = recommended();
+        var cur = currentCat();
+        var html = "";
+        CATS.forEach(function(c){
+          var isLeast = least.indexOf(c.id)>=0;
+          var isCur = c.id===cur;
+          var badges = "";
+          if (isCur) badges += '<span class="badge sel">選択中</span>';
+          if (c.id===rec.primary) badges += '<span class="badge rec">おすすめ</span>';
+          else if (c.id===rec.secondary) badges += '<span class="badge least">候補</span>';
+          if (isLeast) badges += '<span class="badge least">少なめ</span>';
+          var pct = Math.round(counts[c.id]/max*100);
+          html += '<button type="button" class="theme-card" data-cat="'+c.id+'" aria-pressed="'+isCur+'" aria-label="'+c.label+' '+counts[c.id]+'回">'
+            + '<span class="top"><span class="name">'+c.label+'</span><span class="count">'+counts[c.id]+'回</span></span>'
+            + '<span class="track" aria-hidden="true"><span class="fill" style="display:block;width:'+pct+'%"></span></span>'
+            + '<span class="badges">'+badges+'</span>'
+            + '</button>';
+        });
+        $("themeGrid").innerHTML = html;
+        var btns = $("themeGrid").querySelectorAll(".theme-card");
+        for (var i=0;i<btns.length;i++){
+          btns[i].addEventListener("click", function(){
+            state.manualCat = this.getAttribute("data-cat");
+            var t = $("toast"); if (t) t.textContent = "";
+            var dm = $("dataMsg"); if (dm){ dm.textContent=""; dm.className="data-msg"; }
+            render();
+            var sheet = $("sheet");
+            if (sheet && window.innerWidth < 700) {
+              /* モバイルでは選択後にシートが見える位置へ軽くスクロール */
+              setTimeout(function(){ sheet.scrollIntoView({behavior:"smooth", block:"start"}); }, 50);
+            }
+          });
+        }
+      }
+
+      function render(){
+        renderTheme();
+        var cat = currentCat();
+        var card = CARDS[state.role][cat];
+        var rec = recommended();
+        var t = TIMES[state.time];
+
+        $("catBadge").textContent = catLabel(cat) + "｜" + (state.role==="manager" ? "上司として" : "部下として");
+        var reason = SCENES[state.scene].reason;
+        if (state.manualCat) reason = "テーマを手動で選んでいます。場面のおすすめは「" + catLabel(rec.primary) + "」です。";
+        else if (state.scene==="regular") reason = "場面「定期」：一番触れていない分類「" + catLabel(rec.primary) + "」から提案しています。";
+        $("reason").textContent = reason;
+
+        $("theme").textContent = card.theme;
+        $("goal").textContent = card.goal + "（" + t.note + "）";
+        $("totalMins").textContent = t.total + "分";
+
+        /* 縦タイムライン：各STEPの長さと目安分を配分に合わせる */
+        t.parts.forEach(function(p, i){
+          var minEl = $("tlMin" + i); if (minEl) minEl.textContent = "目安 " + p[1] + "分";
+          var stEl = $("tlStep" + i); if (stEl) stEl.style.flexGrow = p[1];
+        });
+
+        var opening = (OPENING_OVERRIDE[state.scene] && OPENING_OVERRIDE[state.scene][state.role]) || card.opening;
+        $("opening").textContent = opening;
+        $("q1").textContent = card.q1;
+        $("q2").textContent = card.q2;
+        $("blunt").textContent = card.blunt;
+        $("soft").textContent = card.soft;
+        $("closing").textContent = card.closing;
+
+        var caution = card.caution || SCENES[state.scene].caution || "";
+        if (state.scene==="eval" && card.caution) caution = SCENES.eval.caution + " " + card.caution;
+        if (caution) { $("caution").hidden = false; $("cautionText").textContent = caution; }
+        else { $("caution").hidden = true; }
+
+        $("recordBtn").textContent = "「" + catLabel(cat) + "」で話した";
+        if (typeof syncTimerDisplay === "function") syncTimerDisplay();
+      }
+
+      /* ===== チップ操作 ===== */
+      function bindChips(containerId, attr, key){
+        var box = $(containerId);
+        var btns = box.querySelectorAll("button");
+        for (var i=0;i<btns.length;i++){
+          btns[i].addEventListener("click", function(){
+            for (var j=0;j<btns.length;j++) btns[j].setAttribute("aria-pressed","false");
+            this.setAttribute("aria-pressed","true");
+            state[key] = this.getAttribute(attr);
+            if (key!=="time") state.manualCat = null;
+            if (key==="time" && typeof resetGuideTimer === "function") resetGuideTimer(false);
+            $("toast").textContent = "";
+            render();
+          });
+        }
+      }
+      bindChips("roleChips","data-role","role");
+      bindChips("sceneChips","data-scene","scene");
+      bindChips("timeChips","data-time","time");
+
+      $("recordBtn").addEventListener("click", function(){
+        var cat = currentCat();
+        counts[cat] += 1;
+        saveCounts();
+        $("toast").textContent = "記録しました：「" + catLabel(cat) + "」は合計 " + counts[cat] + " 回になりました。";
+        render();
+        $("toast").textContent = "記録しました：「" + catLabel(cat) + "」は合計 " + counts[cat] + " 回になりました。";
+        var bh = $("backupHint"); if (bh) bh.hidden = false;
+        var bp = $("exportPanel");
+        if (bp && !bp.hidden) $("exportBtn").click(); /* 書き出し表示中なら最新の回数で作り直す */
+      });
+
+      var resetArmed = false, resetTimer = null;
+      $("resetBtn").addEventListener("click", function(){
+        if (!resetArmed) {
+          resetArmed = true;
+          this.textContent = "本当にリセットする（もう一度タップ）";
+          resetTimer = setTimeout(function(){
+            resetArmed = false;
+            $("resetBtn").textContent = "記録をリセット";
+          }, 4000);
+          return;
+        }
+        clearTimeout(resetTimer);
+        resetArmed = false;
+        this.textContent = "記録をリセット";
+        CATS.forEach(function(c){ counts[c.id]=0; });
+        saveCounts();
+        state.manualCat = null;
+        render();
+        $("toast").textContent = "記録をリセットしました。";
+      });
+
+      /* ===== JSON 書き出し / 読み込み ===== */
+      function setDataMsg(text, kind){
+        var el = $("dataMsg");
+        if (!el) return;
+        el.textContent = text || "";
+        el.className = "data-msg" + (kind ? " " + kind : "");
+      }
+      function buildExportObject(){
+        var out = {};
+        CATS.forEach(function(c){ out[c.id]=counts[c.id]; });
+        return {
+          app: "1on1-bias",
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          counts: out
+        };
+      }
+      function setExportMsg(text, kind){
+        var el = $("exportMsg");
+        if (!el) return;
+        el.textContent = text || "";
+        el.className = "data-msg" + (kind ? " " + kind : "");
+      }
+      function applyImportedCounts(next){
+        /* 検証が通った場合だけ呼ぶ：置き換えて保存し、再描画する */
+        CATS.forEach(function(c){ counts[c.id]=next[c.id]; });
+        saveCounts();
+        state.manualCat = null;
+        render();
+      }
+      /* 書き出しは自動ダウンロードに頼らない：JSONをページ内に表示し、コピーで確実に持ち出せるようにする。
+         ダウンロードは任意のリンクとして分離する（アプリ内ブラウザでは download 属性が無視され、
+         JSONが開いてしまうだけなので、自動クリックはしない）。 */
+      var exportUrl = null;
+      $("exportBtn").addEventListener("click", function(){
+        var pad = function(n){ return (n<10?"0":"")+n; };
+        var text = JSON.stringify(buildExportObject(), null, 2);
+        $("jsonView").value = text;
+        $("exportPanel").hidden = false;
+        try {
+          if (exportUrl) URL.revokeObjectURL(exportUrl);
+          var blob = new Blob([text], {type:"application/json"});
+          exportUrl = URL.createObjectURL(blob);
+          var d = new Date();
+          var link = $("downloadLink");
+          link.href = exportUrl;
+          link.setAttribute("download", "1on1-bias-" + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + ".json");
+          link.hidden = false;
+        } catch(e) { /* ダウンロード用リンクが作れない環境でも、表示とコピーは使える */ }
+        var now = new Date();
+        setExportMsg("いまの回数のJSONを表示しました（" + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()) + "）。ダウンロードできない環境では「JSONをコピー」で保存してください。", "ok");
+      });
+
+      $("copyBtn").addEventListener("click", function(){
+        var ta = $("jsonView");
+        function done(){ setExportMsg("JSONをコピーしました。メモアプリなどに貼り付けて保存してください。", "ok"); }
+        function fallback(){
+          ta.focus();
+          ta.select();
+          var ok = false;
+          try { ok = document.execCommand("copy"); } catch(e) { ok = false; }
+          if (ok) done();
+          else setExportMsg("コピーできませんでした。JSONの文字を選んでコピーしてください。", "err");
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(ta.value).then(done, fallback);
+        } else {
+          fallback();
+        }
+      });
+
+      $("downloadLink").addEventListener("click", function(){
+        setExportMsg("ダウンロードを試しました。始まらない場合は、表示されたJSONをコピーして保存してください。", "ok");
+      });
+
+      function validateImported(parsed){
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+        var src = null;
+        if (parsed.counts && typeof parsed.counts === "object" && !Array.isArray(parsed.counts)) {
+          src = parsed.counts;
+        } else {
+          /* counts を包んでいない素のオブジェクトも許容する */
+          src = parsed;
+        }
+        var next = {};
+        var hasAny = false;
+        for (var i=0;i<CATS.length;i++){
+          var id = CATS[i].id;
+          if (!Object.prototype.hasOwnProperty.call(src, id)) {
+            /* 欠けている分類は不正として扱わず 0 にはしない：全分類そろっている形式だけを正とする方が安全だが、
+               古い書き出しとの互換のため、1つでも正しいキーがあれば欠けは0で補う */
+            next[id] = 0;
+            continue;
+          }
+          var v = src[id];
+          if (typeof v !== "number" || !isFinite(v) || Math.floor(v)!==v || v<0 || v>100000) return null;
+          next[id] = v;
+          hasAny = true;
+        }
+        if (!hasAny) return null;
+        /* counts 以外の余計なキーだけのファイルは弾く：既知キーが最低1つ必要（hasAnyで担保） */
+        return next;
+      }
+
+      $("importFile").addEventListener("change", function(){
+        var file = this.files && this.files[0];
+        this.value = "";
+        if (!file) return;
+        if (file.size > 1024*1024) {
+          setDataMsg("読み込みに失敗しました：ファイルが大きすぎます。書き出したJSONかどうか確認してください。現在のデータは変更していません。", "err");
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(){
+          var parsed;
+          try { parsed = JSON.parse(String(reader.result||"")); }
+          catch(e) {
+            setDataMsg("読み込みに失敗しました：JSONとして読み取れませんでした。現在のデータは変更していません。", "err");
+            return;
+          }
+          var next = validateImported(parsed);
+          if (!next) {
+            setDataMsg("読み込みに失敗しました：形式が合っていません（分類ごとの0以上の整数の回数が必要です）。現在のデータは変更していません。", "err");
+            return;
+          }
+          /* 検証が通った場合だけ置き換える */
+          applyImportedCounts(next);
+          setDataMsg("JSONを読み込みました。回数を置き換え、この端末のlocalStorageにも保存しました。", "ok");
+          var t = $("toast"); if (t) t.textContent = "データを読み込みました。";
+        };
+        reader.onerror = function(){
+          setDataMsg("読み込みに失敗しました：ファイルを読めませんでした。現在のデータは変更していません。", "err");
+        };
+        reader.readAsText(file);
+      });
+
+      $("pasteImportBtn").addEventListener("click", function(){
+        var text = $("pasteText").value.trim();
+        if (!text) {
+          setDataMsg("読み込みに失敗しました：貼り付け欄が空です。書き出したJSONを貼り付けてください。現在のデータは変更していません。", "err");
+          return;
+        }
+        var parsed;
+        try { parsed = JSON.parse(text); }
+        catch(e) {
+          setDataMsg("読み込みに失敗しました：JSONとして読み取れませんでした。現在のデータは変更していません。", "err");
+          return;
+        }
+        var next = validateImported(parsed);
+        if (!next) {
+          setDataMsg("読み込みに失敗しました：形式が合っていません（分類ごとの0以上の整数の回数が必要です）。現在のデータは変更していません。", "err");
+          return;
+        }
+        applyImportedCounts(next);
+        $("pasteText").value = "";
+        setDataMsg("貼り付けたJSONを読み込みました。回数を置き換え、この端末のlocalStorageにも保存しました。", "ok");
+        var t = $("toast"); if (t) t.textContent = "データを読み込みました。";
+      });
+
+      /* ===== 目安タイマー =====
+         経過は開始時刻との差分で計算する（カウント加算のドリフトを避ける）。
+         状態は保存しない：リロードでリセットされる。
+         進み具合は進め方シートの縦タイムライン（STEP1→2→3のレール）で表す。 */
+      var timerState = {
+        running: false,
+        startedAt: null,      /* 実行中の区間の開始時刻 (ms) */
+        elapsedBefore: 0,     /* 一時停止までに積み上げた経過秒 */
+        intervalId: null,
+        notified5: false,
+        notified0: false,
+        finished: false
+      };
+      function timerTotalSec(){ return TIMES[state.time].total * 60; }
+      function timerElapsedSec(){
+        var e = timerState.elapsedBefore;
+        if (timerState.running && timerState.startedAt !== null) {
+          e += (Date.now() - timerState.startedAt) / 1000;
+        }
+        return e;
+      }
+      function setTimerMsg(text, warn){
+        var el = $("timerMsg"); if (!el) return;
+        el.textContent = text || "";
+        el.className = "timer-msg" + (warn ? " warn" : "");
+        el.hidden = !text;
+      }
+      function fmtElapsed(sec){
+        sec = Math.max(0, Math.floor(sec));
+        var m = Math.floor(sec/60), s = sec%60;
+        return m + ":" + (s<10?"0":"") + s;
+      }
+      function fmtRemaining(sec){
+        if (sec < 0) {
+          var over = Math.floor(-sec);
+          return "超過 " + Math.floor(over/60) + "分" + (over%60) + "秒";
+        }
+        var r = Math.ceil(sec);
+        return "約" + Math.floor(r/60) + "分" + (r%60) + "秒";
+      }
+      function currentSegment(elapsed){
+        var t = TIMES[state.time];
+        var acc = 0;
+        for (var i=0;i<t.parts.length;i++){
+          acc += t.parts[i][1]*60;
+          if (elapsed < acc) return i;
+        }
+        return t.parts.length; /* 目安を過ぎた */
+      }
+      function syncTimerDisplay(){
+        var total = timerTotalSec();
+        var elapsed = timerElapsedSec();
+        var remaining = total - elapsed;
+        var t = TIMES[state.time];
+        var started = !(timerState.startedAt===null && !timerState.running && timerState.elapsedBefore===0);
+        var segIdx = currentSegment(elapsed);
+        /* 縦タイムライン：各STEPのレールを上から順に満たし、STEPの状態を切り替える */
+        var acc = 0;
+        for (var i=0;i<t.parts.length;i++){
+          var segSec = t.parts[i][1]*60;
+          var segElapsed = Math.min(segSec, Math.max(0, elapsed - acc));
+          var pct = segSec ? (segElapsed/segSec*100) : 0;
+          var stepEl = $("tlStep" + i);
+          if (stepEl) {
+            var fill = stepEl.querySelector(".tl-fill");
+            if (fill) fill.style.height = pct + "%";
+            var isDone = started && (elapsed > total || segIdx > i);
+            var isCurrent = started && elapsed <= total && segIdx === i;
+            stepEl.classList.toggle("done", isDone);
+            stepEl.classList.toggle("current", isCurrent);
+            stepEl.classList.toggle("over", elapsed > total);
+            var st = stepEl.querySelector(".tl-state");
+            if (st) st.textContent = isDone ? "終わった目安" : (isCurrent ? "いまここ" : "");
+          }
+          acc += segSec;
+        }
+        var el = $("timerElapsed"); if (el) el.textContent = fmtElapsed(elapsed);
+        var rem = $("timerRemaining"); if (rem) rem.textContent = fmtRemaining(remaining);
+        var segLabel = segIdx < t.parts.length ? t.parts[segIdx][0] : "目安を過ぎています";
+        var phase = $("timerPhase");
+        if (phase) {
+          if (!started) phase.textContent = "まだ始まっていません";
+          else if (elapsed > total) phase.textContent = "目安の時間を過ぎています";
+          else if (timerState.running) phase.textContent = "進行中：" + segLabel;
+          else phase.textContent = "一時停止中：" + segLabel;
+        }
+        var btn = $("timerStartPauseBtn");
+        if (btn) btn.textContent = timerState.running ? "一時停止" : (timerState.elapsedBefore>0 ? "再開" : "スタート");
+      }
+      function timerTick(){
+        var total = timerTotalSec();
+        var elapsed = timerElapsedSec();
+        var remaining = total - elapsed;
+        if (!timerState.notified5 && remaining <= 300 && remaining > 0) {
+          timerState.notified5 = true;
+          setTimerMsg("残り5分になりました（目安）。締めの準備を始める頃合いです。", false);
+        }
+        if (!timerState.notified0 && remaining <= 0) {
+          timerState.notified0 = true;
+          timerState.finished = true;
+          setTimerMsg("目安の時間になりました。そのまま話し続けても大丈夫です。", true);
+        }
+        syncTimerDisplay();
+      }
+      function startTimerInterval(){
+        if (timerState.intervalId) clearInterval(timerState.intervalId);
+        timerState.intervalId = setInterval(timerTick, 250);
+      }
+      function stopTimerInterval(){
+        if (timerState.intervalId) { clearInterval(timerState.intervalId); timerState.intervalId = null; }
+      }
+      function resetGuideTimer(announce){
+        stopTimerInterval();
+        timerState.running = false;
+        timerState.startedAt = null;
+        timerState.elapsedBefore = 0;
+        timerState.notified5 = false;
+        timerState.notified0 = false;
+        timerState.finished = false;
+        if (announce !== false) setTimerMsg("タイマーをリセットしました。", false);
+        else setTimerMsg("", false);
+        syncTimerDisplay();
+      }
+      /* グローバルから render/bindChips が呼べるように（同一クロージャ内だが宣言順の保険） */
+      window.__timerReset = resetGuideTimer;
+
+      $("timerStartPauseBtn").addEventListener("click", function(){
+        if (timerState.running) {
+          /* 一時停止：経過を積み上げて止める */
+          timerState.elapsedBefore = timerElapsedSec();
+          timerState.running = false;
+          timerState.startedAt = null;
+          stopTimerInterval();
+          setTimerMsg("一時停止しました。再開ボタンで続きから計れます。", false);
+        } else {
+          /* スタート／再開：目安を過ぎていたら通知フラグは維持し、メッセージを二重に出さない */
+          timerState.running = true;
+          timerState.startedAt = Date.now();
+          startTimerInterval();
+          if (timerState.elapsedBefore === 0) setTimerMsg("タイマーをスタートしました。目安として使ってください。", false);
+          else setTimerMsg("タイマーを再開しました。", false);
+        }
+        syncTimerDisplay();
+      });
+      $("timerResetBtn").addEventListener("click", function(){ resetGuideTimer(true); });
+
+      render();
+    })();
+    </script>
+  </body>
+</html>
